@@ -1,4 +1,4 @@
-## Policy
+
 resource "aws_iam_policy" "policy" {
   name        = "${var.component}-${var.env}-ssm-pm-policy"
   path        = "/"
@@ -99,7 +99,7 @@ resource "aws_route53_record" "dns" {
 }
 
 
-## Null Resource - Ansible
+
 resource "null_resource" "ansible" {
   depends_on = [aws_instance.instance, aws_route53_record.dns]
   provisioner "remote-exec" {
