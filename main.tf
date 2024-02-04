@@ -96,8 +96,8 @@ resource "aws_instance" "instance" {
    name            = "${var.component}-dev"
    type            = "A"
    zone_id         = "Z0559232N13IZWR6N7XK"
-   ttl     = 30
-   records = [aws_instance.instance.private_ip]
+   ttl             = 30
+   records         = [aws_instance.instance.private_ip]
 }
 
 
