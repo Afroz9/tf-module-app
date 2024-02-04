@@ -1,26 +1,32 @@
-
+## Policy
 resource "aws_iam_policy" "policy" {
   name        = "${var.component}-${var.env}-ssm-pm-policy"
   path        = "/"
   description = "${var.component}-${var.env}-ssm-pm-policy"
 
-
   policy = jsonencode({
-    "Version": "2012-10-17",
-    "Statement": [
+    "Version" : "2012-10-17",
+    "Statement" : [
       {
-        "Sid": "VisualEditor0",
-        "Effect": "Allow",
-        "Action": "ssmmessages:*",
-        "Resource": "*"
+        "Sid" : "VisualEditor0",
+        "Effect" : "Allow",
+        "Action" : [
+          "ssm:GetParameterHistory",
+          "ssm:GetParametersByPath",
+          "ssm:GetParameters",
+          "ssm:GetParameter"
+        ],
+        "Resource" : "arn:aws:ssm:us-east-1:345589913789:parameter/roboshop.${var.env}.${var.component}.*"
       }
     ]
   })
 }
+
 ## Iam Role
 
 resource "aws_iam_role" "role" {
   name = "${var.component}-${var.env}-ec2-role"
+
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
     Statement = [
@@ -35,20 +41,13 @@ resource "aws_iam_role" "role" {
     ]
   })
 }
+
 resource "aws_iam_instance_profile" "instance_profile" {
   name = "${var.component}-${var.env}-ec2-role"
   role = aws_iam_role.role.name
 }
 
-resource "aws_iam_role_policy_attachment" "policy-attach" {
-  role       = aws_iam_role.role.name
-  policy_arn = aws_iam_policy.policy.arn
-}
-
-
-
-
-
+## Security group
 resource "aws_security_group" "sg" {
   name        = "${var.component}-${var.env}-sg"
   description = "${var.component}-${var.env}-sg"
@@ -75,8 +74,8 @@ resource "aws_security_group" "sg" {
   }
 }
 
+##Ec2
 
-## Ec2
 resource "aws_instance" "instance" {
   ami           = data.aws_ami.ami.id
   instance_type = "t3.small"
@@ -84,23 +83,25 @@ resource "aws_instance" "instance" {
   iam_instance_profile = aws_iam_instance_profile.instance_profile.name
 
   tags = {
-    Name = "${var.component}-${var.env}"
+    Name ="${var.component}-${var.env}"
   }
 
 }
 
 
-#resource "aws_route53_record" "dns" {
- resource "aws_route53_record" "dns" {
-   allow_overwrite = true
-   name            = "${var.component}-dev"
-   type            = "A"
-   zone_id         = "Z0559232N13IZWR6N7XK"
-   ttl             = 30
-   records         = [aws_instance.instance.private_ip]
+## DNS Record
+resource "aws_route53_record" "dns" {
+  zone_id = "Z0559232N13IZWR6N7XK"
+  name    = "${var.component}-dev"
+  type    = "A"
+  ttl     = 30
+  records = [aws_instance.instance.private_ip]
 }
 
 
+
+
+## Null Resource - Ansible
 resource "null_resource" "ansible" {
   depends_on = [aws_instance.instance, aws_route53_record.dns]
   provisioner "remote-exec" {
