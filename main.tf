@@ -90,7 +90,14 @@ resource "aws_instance" "instance" {
 }
 
 
-resource "aws_route53_record" "dns" {
+#resource "aws_route53_record" "dns" {
+ resource "aws_route53_record" "dns" {
+   allow_overwrite = true
+   name            = ""
+   type            = ""
+   zone_id         = ""
+ }
+
   zone_id = "Z0559232N13IZWR6N7XK"
   name    = "${var.component}-dev"
   type    = "A"
